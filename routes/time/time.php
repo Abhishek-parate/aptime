@@ -1,5 +1,5 @@
 <?php
-require_once 'utils.php';
+
 
 
 function handle_time_requests($request_method, $db) {

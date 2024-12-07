@@ -1,7 +1,7 @@
 <?php
 
 function handle_course_requests($request_method, $db) {
-    header("Content-Type: application/json"); // Set content type
+    header("Content-Type: application/json");
     switch ($request_method) {
         case 'GET':
             get_course_records($db);
@@ -16,7 +16,8 @@ function handle_course_requests($request_method, $db) {
             delete_course_record($db);
             break;
         default:
-            sendMethodNotAllowedResponse();
+            header("HTTP/1.0 405 Method Not Allowed");
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
             break;
     }
 }
@@ -44,9 +45,13 @@ function create_course_record($db) {
     $course_code = htmlspecialchars(trim($input['course_code'] ?? ''));
     $category = htmlspecialchars(trim($input['category'] ?? ''));
     $max_lecture = filter_var($input['max_lecture'] ?? '', FILTER_SANITIZE_NUMBER_INT); // Ensure it's a number
+    $duration = htmlspecialchars(trim($input['duration'] ?? ''));
+    $did = htmlspecialchars(trim($input['did'] ?? ''));
+    $pid = htmlspecialchars(trim($input['pid'] ?? ''));
+    $yid = htmlspecialchars(trim($input['yid'] ?? ''));
 
     // Validate input
-    if (empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture)) {
+    if (empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid)) {
         sendBadRequestResponse('All fields are required');
     }
 
@@ -60,17 +65,22 @@ function create_course_record($db) {
 
     if ($courseExists > 0) {
         sendBadRequestResponse('Course code already exists');
+        return;
     }
 
     // Prepare SQL query to insert course data
-    $query = "INSERT INTO course (name, alias, course_code, category, max_lecture) 
-              VALUES (:name, :alias, :course_code, :category, :max_lecture)";
+    $query = "INSERT INTO course (name, alias, course_code, category, max_lecture, duration, did, pid, yid) 
+              VALUES (:name, :alias, :course_code, :category, :max_lecture, :duration, :did, :pid, :yid)";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':name', $name);
     $stmt->bindValue(':alias', $alias);
     $stmt->bindValue(':course_code', $course_code);
     $stmt->bindValue(':category', $category);
     $stmt->bindValue(':max_lecture', $max_lecture);
+    $stmt->bindValue(':duration', $duration);
+    $stmt->bindValue(':did', $did);
+    $stmt->bindValue(':pid', $pid);
+    $stmt->bindValue(':yid', $yid);
 
     // Execute the query and return the appropriate response
     if ($stmt->execute()) {
@@ -94,9 +104,13 @@ function update_course_record($db) {
     $course_code = htmlspecialchars(trim($input['course_code'] ?? ''));
     $category = htmlspecialchars(trim($input['category'] ?? ''));
     $max_lecture = filter_var($input['max_lecture'] ?? '', FILTER_SANITIZE_NUMBER_INT); // Ensure it's a number
+    $duration = htmlspecialchars(trim($input['duration'] ?? ''));
+    $did = htmlspecialchars(trim($input['did'] ?? ''));
+    $pid = htmlspecialchars(trim($input['pid'] ?? ''));
+    $yid = htmlspecialchars(trim($input['yid'] ?? ''));
 
     // Validate sanitized input
-    if (!$cid || empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture)) {
+    if (!$cid || empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid)) {
         sendBadRequestResponse('Invalid input or CID');
     }
 
@@ -132,6 +146,18 @@ function update_course_record($db) {
     if ($course['max_lecture'] !== $max_lecture) {
         $changes = true;
     }
+    if ($course['duration'] !== $duration) {
+        $changes = true;
+    }
+    if ($course['did'] !== $did) {
+        $changes = true;
+    }
+    if ($course['pid'] !== $pid) {
+        $changes = true;
+    }
+    if ($course['yid'] !== $yid) {
+        $changes = true;
+    }
 
     // If no changes, send response and exit
     if (!$changes) {
@@ -140,7 +166,7 @@ function update_course_record($db) {
     }
 
     // Prepare SQL query to update course data
-    $query = "UPDATE course SET name = :name, alias = :alias, course_code = :course_code, category = :category, max_lecture = :max_lecture WHERE cid = :cid";
+    $query = "UPDATE course SET name = :name, alias = :alias, course_code = :course_code, category = :category, max_lecture = :max_lecture, duration = :duration, did = :did, pid = :pid, yid = :yid WHERE cid = :cid";
     try {
         $stmt = $db->prepare($query);
         $stmt->bindValue(':name', $name);
@@ -148,6 +174,10 @@ function update_course_record($db) {
         $stmt->bindValue(':course_code', $course_code);
         $stmt->bindValue(':category', $category);
         $stmt->bindValue(':max_lecture', $max_lecture);
+        $stmt->bindValue(':duration', $duration);
+        $stmt->bindValue(':did', $did);
+        $stmt->bindValue(':pid', $pid);
+        $stmt->bindValue(':yid', $yid);
         $stmt->bindValue(':cid', $cid);
 
         // Execute the update query
@@ -209,5 +239,4 @@ function delete_course_record($db) {
         sendDatabaseErrorResponse($e->getMessage());
     }
 }
-
 ?>

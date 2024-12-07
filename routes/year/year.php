@@ -41,9 +41,9 @@ function create_yeardata_records($db) {
 
     $name = htmlspecialchars(trim($input['name'] ?? ''));
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
-    $timeid = htmlspecialchars(trim($input['timeid'] ?? ''));
 
-    if (empty($name) || empty($pid) || empty($timeid)) {
+
+    if (empty($name) || empty($pid)) {
         sendBadRequestResponse('All fields are required');
         return;
     }
@@ -62,15 +62,15 @@ function create_yeardata_records($db) {
        }
    
   // Prepare SQL query to insert year data
-  $query = "INSERT INTO yeardata (name, pid, timeid) VALUES (:name, :pid, :timeid)";
+  $query = "INSERT INTO yeardata (name, pid) VALUES (:name, :pid)";
   $stmt = $db->prepare($query);
   $stmt->bindValue(':name', $name);
   $stmt->bindValue(':pid', $pid);
-  $stmt->bindValue(':timeid', $timeid);
+  
 
   // Execute the query and return the appropriate response
   if ($stmt->execute()) {
-      echo json_encode(['success' => true, 'message' => 'Department record created successfully']);
+      echo json_encode(['success' => true, 'message' => 'Year created successfully']);
   } else {
       sendDatabaseErrorResponse();
   }
@@ -86,11 +86,10 @@ function update_yeardata_records($db) {
     $yid = $input['yid'] ?? null;
     $name = htmlspecialchars(trim($input['name'] ?? ''));
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
-    $timeid = htmlspecialchars(trim($input['timeid'] ?? ''));
 
 
     // Validate sanitized input
-    if (!$yid || empty($name) || empty($pid) || empty($timeid)) {
+    if (!$yid || empty($name) || empty($pid)) {
         sendBadRequestResponse('Invalid input or yid');
     }
 
@@ -116,9 +115,7 @@ if (!$year) {
  if ($year['pid'] !== $pid) {
      $changes = true;
  }
- if ($year['timeid'] !== $timeid) {
-     $changes = true;
- }
+
  
  
  // If no dept, send response and exit
@@ -128,12 +125,12 @@ if (!$year) {
 }
 
 // Prepare SQL query to update dept data
-$query = "UPDATE yeardata SET name = :name, pid = :pid, timeid = :timeid WHERE yid = :yid";
+$query = "UPDATE yeardata SET name = :name, pid = :pid WHERE yid = :yid";
 try {
     $stmt = $db->prepare($query);
     $stmt->bindValue(':name', $name);
     $stmt->bindValue(':pid', $pid);
-    $stmt->bindValue(':timeid', $timeid);
+    
     $stmt->bindValue(':yid', $yid); // Bind the 'yid'
 
   
