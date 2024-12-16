@@ -3,7 +3,7 @@
 function handle_timetabledata_requests($request_method, $db) {
     header("Content-Type: application/json"); // Set content type
     switch ($request_method) {
-        case 'GET':
+        case 'POST':
             get_timetabledata_records($db);
             break;
        

@@ -49,8 +49,9 @@ function create_yeardata_records($db) {
     }
 
        // Check if year already exists
-       $query = "SELECT COUNT(*) FROM yeardata WHERE name = :name";
+       $query = "SELECT COUNT(*) FROM yeardata WHERE name = :name && pid = :pid";
        $stmt = $db->prepare($query);
+       $stmt->bindValue(':pid', $pid);
        $stmt->bindValue(':name', $name);
        $stmt->execute();
    

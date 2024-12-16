@@ -15,6 +15,7 @@ include_once 'routes/course/course.php';
 include_once 'routes/course/courseallotment.php';  
 include_once 'routes/faculty/faculty.php';  
 include_once 'routes/faculty/masterfaculty.php';  
+include_once 'routes/faculty/getfacultybysection.php';  
 include_once 'routes/dept/department.php';  
 include_once 'routes/class/class.php';  
 include_once 'routes/class/roommaster.php';  
@@ -23,12 +24,17 @@ include_once 'routes/course/courseduration.php';
 include_once 'routes/course/coursecategory.php';  
 include_once 'routes/class/getfloor.php';  
 include_once 'routes/timetable/timetable.php';  
+include_once 'routes/timetable/timetable.php';  
+include_once 'routes/timetable/getcourseandfaculty.php';  
 include_once 'routes/timetable/getgaps.php';  
 include_once 'routes/timetable/gettimetable.php';  
 include_once 'routes/allotment.php';  
 include_once 'routes/year/year.php';  
 include_once 'routes/program/program.php';  
-    
+
+include_once 'routes/semester/semester.php';  
+include_once 'routes/semester/getelective.php';  
+
 require_once 'routes/utils/utils.php';
 
 $database = new Database();
@@ -107,6 +113,23 @@ switch ($endpoint) {
     case 'getimetable':
         handle_timetabledata_requests($request_method, $db);
     break;
+
+    case 'getcourseandfaculty':
+        handle_courseandfaculty_requests($request_method, $db);
+    break;
+
+    case 'semesterdata':
+        handle_semesterdata_requests($request_method, $db);
+    break;
+
+    case 'getfacultybytimetable':
+        handle_getfacultybytimetable_requests($request_method, $db);
+    break;
+
+    case 'getelective':
+        handle_get_elective_values_requests($request_method, $db);
+    break;
+
     default:
         $database->sendResponse(404, 'Endpoint not found.');
 }

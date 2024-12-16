@@ -3,20 +3,20 @@
 
 
 
-function handle_section_requests($request_method, $db) {
+function handle_semesterdata_requests($request_method, $db) {
     header("Content-Type: application/json");
     switch ($request_method) {
         case 'GET':
-            get_section_records($db);
+            get_semesterdata_records($db);
             break;
         case 'POST':
-            create_section_records($db);
+            create_semesterdata_records($db);
             break;
         case 'PUT':
-            update_section_records($db);
+            update_semesterdata_records($db);
             break;
         case 'DELETE';
-            delete_section_records($db);
+            delete_semesterdata_records($db);
             break;
         default:
             header("HTTP/1.0 405 Method Not Allowed");
@@ -25,8 +25,8 @@ function handle_section_requests($request_method, $db) {
     }
 }
 
-function get_section_records($db) { 
-    $query = "SELECT * FROM section";
+function get_semesterdata_records($db) { 
+    $query = "SELECT * FROM semesterdata";
     try {
         $stmt = $db->prepare($query);
         $stmt->execute();
@@ -37,77 +37,72 @@ function get_section_records($db) {
     }
 }
 
-function create_section_records($db) {
+function create_semesterdata_records($db) {
     $input = json_decode(file_get_contents('php://input'), true);
     $name = htmlspecialchars(trim($input['name'] ?? ''));
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
-    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
 
-    if (empty($name) || empty($pid) || empty($yid)|| empty($semid)) {
+    if (empty($name) || empty($pid) || empty($yid)) {
         sendBadRequestResponse('All fields are required');
         return;
     }
 
-       // Check if section_code already exists
-       $query = "SELECT COUNT(*) FROM section WHERE name = :name AND pid = :pid AND yid = :yid AND semid= :semid" ;
+       // Check if semesterdata_code already exists
+       $query = "SELECT COUNT(*) FROM semesterdata WHERE name = :name AND pid = :pid AND yid = :yid";
        $stmt = $db->prepare($query);
        $stmt->bindValue(':name', $name);
        $stmt->bindValue(':pid', $pid);
        $stmt->bindValue(':yid', $yid);
-       $stmt->bindValue(':semid', $semid);
        $stmt->execute();
    
-       $sectionExists = $stmt->fetchColumn();
+       $semesterdataExists = $stmt->fetchColumn();
    
-       if ($sectionExists > 0) {
-           sendBadRequestResponse('section already exists');
+       if ($semesterdataExists > 0) {
+           sendBadRequestResponse('semesterdata already exists');
            return;
        }
 
 
-         // Prepare SQL query to insert section data
-         $query = "INSERT INTO section (name, pid, yid, semid) VALUES (:name, :pid, :yid, :semid)";
-         $stmt = $db->prepare($query);
-         $stmt->bindValue(':name', $name);
-         $stmt->bindValue(':pid', $pid);
-         $stmt->bindValue(':yid', $yid);
-         $stmt->bindValue(':semid', $semid);
-         
+         // Prepare SQL query to insert semesterdata data
+    $query = "INSERT INTO semesterdata (name, pid, yid) VALUES (:name, :pid, :yid)";
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(':name', $name);
+    $stmt->bindValue(':pid', $pid);
+    $stmt->bindValue(':yid', $yid);
 
     // Execute the query and return the appropriate response
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'section Added successfully']);
+        echo json_encode(['success' => true, 'message' => 'semesterdata Added successfully']);
     } else {
         sendDatabaseErrorResponse();
     }
 }
 
-function update_section_records($db) {
+function update_semesterdata_records($db) {
     $input = json_decode(file_get_contents('php://input'), true);
     
-    $sid = $input['sid'] ?? null;
+    $semid = $input['semid'] ?? null;
     $name = htmlspecialchars(trim($input['name'] ?? ''));
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
-    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
 
     // Validate sanitized input
-    if (!$sid || empty($name) || empty($pid) || empty($yid)|| empty($semid)) {
-        sendBadRequestResponse('Invalid input or sid');
+    if (!$semid || empty($name) || empty($pid) || empty($yid)) {
+        sendBadRequestResponse('Invalid input or semid');
     }
 
     $name = html_entity_decode($name);
 
-    // Check if the section record with the given cid exists
-    $query = "SELECT * FROM section WHERE sid = :sid";
+    // Check if the semesterdata record with the given cid exists
+    $query = "SELECT * FROM semesterdata WHERE semid = :semid";
     $stmt = $db->prepare($query);
-    $stmt->bindValue(':sid', $sid);
+    $stmt->bindValue(':semid', $semid);
     $stmt->execute();
-    $section = $stmt->fetch(PDO::FETCH_ASSOC);
+    $semesterdata = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$section) {
-        sendBadRequestResponse('No section found with the given sid');
+    if (!$semesterdata) {
+        sendBadRequestResponse('No semesterdata found with the given semid');
     }
 
     
@@ -115,44 +110,39 @@ function update_section_records($db) {
  // Check if any field has changed
  $changes = false;
 
- if ($section['name'] !== $name) {
+ if ($semesterdata['name'] !== $name) {
      $changes = true;
  }
- if ($section['pid'] !== $pid) {
+ if ($semesterdata['pid'] !== $pid) {
      $changes = true;
  }
- if ($section['yid'] !== $yid) {
+ if ($semesterdata['yid'] !== $yid) {
      $changes = true;
  }
-
- if ($section['semid'] !== $semid) {
-    $changes = true;
-}
 
  
- // If no section, send response and exit
+ // If no semesterdata, send response and exit
  if (!$changes) {
-    sendResponse(200, 'section already up to date');
+    sendResponse(200, 'semesterdata already up to date');
     return;
 }
 
- // Prepare SQL query to update section data
- $query = "UPDATE section SET name = :name, pid = :pid, yid = :yid, semid = :semid WHERE sid = :sid";
+ // Prepare SQL query to update semesterdata data
+ $query = "UPDATE semesterdata SET name = :name, pid = :pid, yid = :yid WHERE semid = :semid";
  try {
      $stmt = $db->prepare($query);
      $stmt->bindValue(':name', $name);
      $stmt->bindValue(':pid', $pid);
      $stmt->bindValue(':yid', $yid);
-     $stmt->bindValue(':sid', $sid);
      $stmt->bindValue(':semid', $semid);
 
    
 
      // Execute the update query
      if ($stmt->execute()) {
-         sendResponse(200, 'section updated successfully');
+         sendResponse(200, 'semesterdata updated successfully');
      } else {
-         sendResponse(200, 'section already up to date');
+         sendResponse(200, 'semesterdata already up to date');
      }
  } catch (PDOException $e) {
      sendDatabaseErrorResponse($e->getMessage());
@@ -161,28 +151,28 @@ function update_section_records($db) {
 }
 
 
-function delete_section_records($db) {
+function delete_semesterdata_records($db) {
 
 
   // Get input from the request body
   $input = json_decode(file_get_contents('php://input'), true);
-  $sid = $input['sid'] ?? null;
+  $semid = $input['semid'] ?? null;
 
   
-  // Validate if the section ID is provided
-    if (!$sid) {
-    sendBadRequestResponse('section ID (sid) is required');
+  // Validate if the semesterdata ID is provided
+    if (!$semid) {
+    sendBadRequestResponse('semesterdata ID (semid) is required');
     }
 
-      // Check if the section exists before attempting to delete
-  $query = "SELECT COUNT(*) FROM section WHERE sid = :sid";
+      // Check if the semesterdata exists before attempting to delete
+  $query = "SELECT COUNT(*) FROM semesterdata WHERE semid = :semid";
   $stmt = $db->prepare($query);
-  $stmt->bindValue(':sid', $sid);
+  $stmt->bindValue(':semid', $semid);
   $stmt->execute();
-  $sectionExists = $stmt->fetchColumn();
+  $semesterdataExists = $stmt->fetchColumn();
 
-  if ($sectionExists == 0) {
-      // No record found with the given sid
+  if ($semesterdataExists == 0) {
+      // No record found with the given semid
       sendResponse(404, 'No record found to delete');
   }
 
@@ -190,15 +180,15 @@ function delete_section_records($db) {
 
 
    // Prepare the DELETE SQL query
-   $query = "DELETE FROM section WHERE sid = :sid";
+   $query = "DELETE FROM semesterdata WHERE semid = :semid";
    try {
        $stmt = $db->prepare($query);
-       $stmt->bindValue(':sid', $sid);
+       $stmt->bindValue(':semid', $semid);
        
        // Attempt to execute the delete query
        if ($stmt->execute()) {
            if ($stmt->rowCount() > 0) {
-               sendResponse(200, 'section deleted successfully');
+               sendResponse(200, 'semesterdata deleted successfully');
            } else {
                // If no rows are affected, meaning the record was not deleted for some reason
                sendResponse(404, 'No record found to delete');
