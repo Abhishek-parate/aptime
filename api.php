@@ -34,6 +34,8 @@ include_once 'routes/program/program.php';
 
 include_once 'routes/semester/semester.php';  
 include_once 'routes/semester/getelective.php';  
+include_once 'routes/users/login.php';  
+include_once 'routes/users/update_password.php';  
 
 require_once 'routes/utils/utils.php';
 
@@ -128,6 +130,13 @@ switch ($endpoint) {
 
     case 'getelective':
         handle_get_elective_values_requests($request_method, $db);
+    break;
+
+    case 'login':
+        handle_login_requests($request_method, $db);
+    break;
+    case 'changepassword':
+        handle_password_requests($request_method, $db);
     break;
 
     default:

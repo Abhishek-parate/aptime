@@ -44,14 +44,15 @@ function create_course_allotment_record($db) {
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
     $sid = htmlspecialchars(trim($input['sid'] ?? ''));
     $fid = htmlspecialchars(trim($input['fid'] ?? ''));
+    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
 
     // Validate input
-    if (empty($cid) || empty($pid) || empty($yid) || empty($sid) || empty($fid)) {
+    if (empty($cid) || empty($pid) || empty($yid) || empty($sid) || empty($fid) || empty($semid)) {
         sendBadRequestResponse('All fields are required');
     }
 
     // Check if course_code already exists
-    $query = "SELECT COUNT(*) FROM courseallotment WHERE cid = :cid And  pid = :pid And yid = :yid And sid = :sid And fid = :fid";
+    $query = "SELECT COUNT(*) FROM courseallotment WHERE cid = :cid AND pid = :pid AND yid = :yid AND sid = :sid AND fid = :fid";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':cid', $cid);
     $stmt->bindValue(':pid', $pid);
@@ -67,14 +68,15 @@ function create_course_allotment_record($db) {
     }
 
     // Prepare SQL query to insert course data
-    $query = "INSERT INTO courseallotment (cid, pid, yid, sid, fid) 
-              VALUES (:cid, :pid, :yid, :sid, :fid)";
+    $query = "INSERT INTO courseallotment (cid, pid, yid, sid, fid, semid) 
+              VALUES (:cid, :pid, :yid, :sid, :fid, :semid)";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':cid', $cid);
     $stmt->bindValue(':pid', $pid);
     $stmt->bindValue(':yid', $yid);
     $stmt->bindValue(':sid', $sid);
     $stmt->bindValue(':fid', $fid);
+    $stmt->bindValue(':semid', $semid);
 
     // Execute the query and return the appropriate response
     if ($stmt->execute()) {
@@ -85,7 +87,6 @@ function create_course_allotment_record($db) {
         sendDatabaseErrorResponse();
     }
 }
-
 
 function update_course_allotment_record($db) {
     // Get input from the request body
@@ -98,15 +99,14 @@ function update_course_allotment_record($db) {
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
     $sid = htmlspecialchars(trim($input['sid'] ?? ''));
     $fid = htmlspecialchars(trim($input['fid'] ?? ''));
-    $caid = htmlspecialchars(trim($input['caid'] ?? ''));
+    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
 
     // Validate sanitized input
-    if (!$caid ||empty($cid) || empty($pid) || empty($yid) || empty($sid) || empty($fid)) {
+    if (!$caid || empty($cid) || empty($pid) || empty($yid) || empty($sid) || empty($fid) || empty($semid)) {
         sendBadRequestResponse('Invalid input or CAid');
     }
 
-
-    // Check if the course record with the given cid exists
+    // Check if the course record with the given caid exists
     $query = "SELECT * FROM courseallotment WHERE caid = :caid";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':caid', $caid);
@@ -135,6 +135,9 @@ function update_course_allotment_record($db) {
     if ($CourseAllotment['fid'] !== $fid) {
         $changes = true;
     }
+    if ($CourseAllotment['semid'] !== $semid) {
+        $changes = true;
+    }
 
     // If no changes, send response and exit
     if (!$changes) {
@@ -143,7 +146,7 @@ function update_course_allotment_record($db) {
     }
 
     // Prepare SQL query to update course data
-    $query = "UPDATE courseallotment SET cid = :cid, pid = :pid, yid = :yid, sid = :sid, fid = :fid WHERE caid = :caid";
+    $query = "UPDATE courseallotment SET cid = :cid, pid = :pid, yid = :yid, sid = :sid, fid = :fid, semid = :semid WHERE caid = :caid";
     try {
         $stmt = $db->prepare($query);
 
@@ -152,9 +155,8 @@ function update_course_allotment_record($db) {
         $stmt->bindValue(':yid', $yid);
         $stmt->bindValue(':sid', $sid);
         $stmt->bindValue(':fid', $fid);
-
+        $stmt->bindValue(':semid', $semid);
         $stmt->bindValue(':caid', $caid);
-
 
         // Execute the update query
         if ($stmt->execute()) {
@@ -166,9 +168,6 @@ function update_course_allotment_record($db) {
         sendDatabaseErrorResponse($e->getMessage());
     }
 }
-
-
-
 
 function delete_course_allotment_record($db) {
     // Get input from the request body

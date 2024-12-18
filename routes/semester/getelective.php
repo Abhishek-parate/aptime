@@ -12,7 +12,7 @@ function handle_get_elective_values_requests($request_method, $db) {
             break;
     }
 }
-
+ 
 function get_get_elective_value_records($db) { 
     $query = "SELECT REPLACE(SUBSTRING(COLUMN_TYPE, 6, LENGTH(COLUMN_TYPE) - 6), \"'\", \"\") AS enum_values
               FROM INFORMATION_SCHEMA.COLUMNS 
