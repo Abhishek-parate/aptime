@@ -35,6 +35,8 @@ function get_timetabledata_records($db) {
                 yeardata.name AS year_name,
                 section.sid AS sid,
                 section.name AS section_name,
+                semesterdata.semid AS semid,
+                semesterdata.name AS sem_name,
                 timetable_create.gap,
                 timetable_create.start_time,
                 timetable_create.end_time
@@ -48,6 +50,8 @@ function get_timetabledata_records($db) {
                 yeardata ON timetable_create.yid = yeardata.yid
             JOIN 
                 section ON timetable_create.sid = section.sid
+             JOIN 
+                semesterdata ON timetable_create.semid = semesterdata.semid
             WHERE timetable_create.tid = :tid";  // Corrected SQL
 
     try {

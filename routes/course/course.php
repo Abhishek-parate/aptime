@@ -49,9 +49,12 @@ function create_course_record($db) {
     $did = htmlspecialchars(trim($input['did'] ?? ''));
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
+    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
+    $elective = htmlspecialchars(trim($input['elective'] ?? ''));
+
 
     // Validate input
-    if (empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid)) {
+    if (empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid) || empty($elective)) {
         sendBadRequestResponse('All fields are required');
     }
 
@@ -69,8 +72,8 @@ function create_course_record($db) {
     }
 
     // Prepare SQL query to insert course data
-    $query = "INSERT INTO course (name, alias, course_code, category, max_lecture, duration, did, pid, yid) 
-              VALUES (:name, :alias, :course_code, :category, :max_lecture, :duration, :did, :pid, :yid)";
+    $query = "INSERT INTO course (name, alias, course_code, category, max_lecture, duration, did, pid, yid, semid, elective) 
+              VALUES (:name, :alias, :course_code, :category, :max_lecture, :duration, :did, :pid, :yid, :semid, :elective)";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':name', $name);
     $stmt->bindValue(':alias', $alias);
@@ -81,6 +84,8 @@ function create_course_record($db) {
     $stmt->bindValue(':did', $did);
     $stmt->bindValue(':pid', $pid);
     $stmt->bindValue(':yid', $yid);
+    $stmt->bindValue(':semid', $semid);
+    $stmt->bindValue(':elective', $elective);
 
     // Execute the query and return the appropriate response
     if ($stmt->execute()) {
@@ -108,9 +113,11 @@ function update_course_record($db) {
     $did = htmlspecialchars(trim($input['did'] ?? ''));
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
+    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
+    $elective = htmlspecialchars(trim($input['elective'] ?? ''));
 
     // Validate sanitized input
-    if (!$cid || empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid)) {
+    if (!$cid || empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid) || empty($semid)) {
         sendBadRequestResponse('Invalid input or CID');
     }
 
@@ -158,6 +165,9 @@ function update_course_record($db) {
     if ($course['yid'] !== $yid) {
         $changes = true;
     }
+    if ($course['semid'] !== $semid) {
+        $changes = true;
+    }
 
     // If no changes, send response and exit
     if (!$changes) {
@@ -166,7 +176,7 @@ function update_course_record($db) {
     }
 
     // Prepare SQL query to update course data
-    $query = "UPDATE course SET name = :name, alias = :alias, course_code = :course_code, category = :category, max_lecture = :max_lecture, duration = :duration, did = :did, pid = :pid, yid = :yid WHERE cid = :cid";
+    $query = "UPDATE course SET name = :name, alias = :alias, course_code = :course_code, category = :category, max_lecture = :max_lecture, duration = :duration, did = :did, pid = :pid, yid = :yid ,  semid = :semid , elective = :elective WHERE cid = :cid";
     try {
         $stmt = $db->prepare($query);
         $stmt->bindValue(':name', $name);
@@ -179,6 +189,8 @@ function update_course_record($db) {
         $stmt->bindValue(':pid', $pid);
         $stmt->bindValue(':yid', $yid);
         $stmt->bindValue(':cid', $cid);
+        $stmt->bindValue(':semid', $semid);
+        $stmt->bindValue(':elective', $elective);
 
         // Execute the update query
         if ($stmt->execute()) {

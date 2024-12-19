@@ -33,7 +33,6 @@ function get_timetable_records($db) {
     }
 }
 
-// Create course record with sanitized input
 function create_timetable_record($db) {
     // Get input from the request body
     $input = json_decode(file_get_contents('php://input'), true);
@@ -43,52 +42,53 @@ function create_timetable_record($db) {
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
     $sid = htmlspecialchars(trim($input['sid'] ?? ''));
+    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
     $gap = htmlspecialchars(trim($input['gap'] ?? ''));
     $start_time = htmlspecialchars(trim($input['start_time'] ?? ''));
     $end_time = htmlspecialchars(trim($input['end_time'] ?? ''));
 
-
-
     // Validate input
-    if (empty($did) || empty($pid) || empty($yid) || empty($sid) || empty($start_time)|| empty($end_time)) {
+    if (empty($did) || empty($pid) || empty($yid) || empty($sid) || empty($semid) || empty($start_time) || empty($end_time)) {
         sendBadRequestResponse('All fields are required');
+        return;
     }
 
-    // Check if course_code already exists
-    $query = "SELECT COUNT(*) FROM timetable_create WHERE did = :did And  pid = :pid And yid = :yid And sid = :sid";
+    // Check if the timetable already exists
+    $query = "SELECT COUNT(*) FROM timetable_create WHERE did = :did AND pid = :pid AND yid = :yid AND sid = :sid AND semid = :semid";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':did', $did);
     $stmt->bindValue(':pid', $pid);
     $stmt->bindValue(':yid', $yid);
     $stmt->bindValue(':sid', $sid);
+    $stmt->bindValue(':semid', $semid);
 
     $stmt->execute();
+    $timetableExists = $stmt->fetchColumn();
 
-    $courseExists = $stmt->fetchColumn();
-
-    if ($courseExists > 0) {
-        sendBadRequestResponse('Timetable already Alloted exists');
+    if ($timetableExists > 0) {
+        sendBadRequestResponse('Timetable already exists');
+        return;
     }
 
-    // Prepare SQL query to insert course data
-    $query = "INSERT INTO timetable_create (did, pid, yid, sid, gap, start_time, end_time) 
-    VALUES (:did, :pid, :yid, :sid, :gap, :start_time, :end_time)";
-
+    // Prepare SQL query to insert timetable data
+    $query = "INSERT INTO timetable_create (did, pid, yid, sid, semid, gap, start_time, end_time) 
+              VALUES (:did, :pid, :yid, :sid, :semid, :gap, :start_time, :end_time)";
     $stmt = $db->prepare($query);
     $stmt->bindValue(':did', $did);
     $stmt->bindValue(':pid', $pid);
     $stmt->bindValue(':yid', $yid);
     $stmt->bindValue(':sid', $sid);
+    $stmt->bindValue(':semid', $semid);
     $stmt->bindValue(':gap', $gap);
     $stmt->bindValue(':start_time', $start_time);
     $stmt->bindValue(':end_time', $end_time);
 
     // Execute the query and return the appropriate response
     if ($stmt->execute()) {
-        // Success: Course record created
-        echo json_encode(['success' => true, 'message' => 'Timetable Alloted successfully']);
+        // Success: Timetable record created
+        echo json_encode(['success' => true, 'message' => 'Timetable created successfully']);
     } else {
-        // Error: Failed to create course record
+        // Error: Failed to create timetable record
         sendDatabaseErrorResponse();
     }
 }
@@ -106,13 +106,14 @@ function update_timetable_record($db) {
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
     $sid = htmlspecialchars(trim($input['sid'] ?? ''));
+    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
     $gap = htmlspecialchars(trim($input['gap'] ?? ''));
     $start_time = htmlspecialchars(trim($input['start_time'] ?? ''));
     $end_time = htmlspecialchars(trim($input['end_time'] ?? ''));
 
 
     // Validate sanitized input
-    if (!$tid ||empty($did) || empty($pid) || empty($yid) || empty($sid) || empty($gap) || empty($start_time)|| empty($end_time)) {
+    if (!$tid ||empty($did) || empty($pid) || empty($yid) || empty($sid)  || empty($semid) || empty($gap) || empty($start_time)|| empty($end_time)) {
         sendBadRequestResponse('Invalid input or tid');
     }
 
@@ -140,6 +141,9 @@ function update_timetable_record($db) {
     if ($Tabletable['sid'] !== $sid) {
         $changes = true;
     }
+    if ($Tabletable['semid'] !== $semid) {
+        $changes = true;
+    }
     if ($Tabletable['yid'] !== $yid) {
         $changes = true;
     }
@@ -162,7 +166,7 @@ function update_timetable_record($db) {
     }
 
     // Prepare SQL query to update course data
-    $query = "UPDATE timetable_create SET did = :did, pid = :pid, yid = :yid, sid = :sid, gap = :gap , start_time = :start_time , end_time = :end_time WHERE tid = :tid";
+    $query = "UPDATE timetable_create SET did = :did, pid = :pid, yid = :yid, sid = :sid,  semid = :semid, gap = :gap , start_time = :start_time , end_time = :end_time WHERE tid = :tid";
     try {
         $stmt = $db->prepare($query);
 
@@ -170,6 +174,7 @@ function update_timetable_record($db) {
         $stmt->bindValue(':pid', $pid);
         $stmt->bindValue(':yid', $yid);
         $stmt->bindValue(':sid', $sid);
+        $stmt->bindValue(':semid', $semid);
         $stmt->bindValue(':gap', $gap);
         $stmt->bindValue(':start_time', $start_time);
         $stmt->bindValue(':end_time', $end_time);
