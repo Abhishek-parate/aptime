@@ -17,6 +17,7 @@ function get_getfacultybytimetable_records($db) {
     $pid = htmlspecialchars(trim($input['pid'] ?? ''));
     $yid = htmlspecialchars(trim($input['yid'] ?? ''));
     $sid = htmlspecialchars(trim($input['sid'] ?? ''));
+    $semid = htmlspecialchars(trim($input['semid'] ?? ''));
 
     if (empty($pid) || empty($yid) || empty($sid)) {
         sendBadRequestResponse('All fields are required');
@@ -27,8 +28,9 @@ $query = "SELECT
     ca.caid, 
     ca.cid, 
     ca.pid, 
-    ca.yid, 
-    ca.sid, 
+    ca.yid,
+    ca.semid, 
+    ca.sid,
     ca.fid, 
     f.name AS faculty_name, 
     f.entrytime, 
@@ -38,6 +40,7 @@ $query = "SELECT
     c.alias AS course_alias, 
     c.course_code, 
     c.category, 
+    c.elective, 
     c.max_lecture, 
     c.duration
 FROM 
@@ -53,12 +56,14 @@ ON
 WHERE 
     ca.pid = :pid AND 
     ca.yid = :yid AND 
+    ca.semid = :semid AND 
     ca.sid = :sid";  
 
     try {
         $stmt = $db->prepare($query);
         $stmt->bindValue(':pid', $pid, PDO::PARAM_INT);
         $stmt->bindValue(':yid', $yid, PDO::PARAM_INT);
+        $stmt->bindValue(':semid', $semid, PDO::PARAM_INT);
         $stmt->bindValue(':sid', $sid, PDO::PARAM_INT);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
