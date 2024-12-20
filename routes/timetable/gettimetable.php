@@ -10,7 +10,7 @@ function handle_timetabledata_requests($request_method, $db) {
         default:
             sendMethodNotAllowedResponse();
             break;
-    }
+    }  
 }
 
 function get_timetabledata_records($db) {
