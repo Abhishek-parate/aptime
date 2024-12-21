@@ -37,6 +37,7 @@ include_once 'routes/semester/getelective.php';
 include_once 'routes/users/login.php';  
 include_once 'routes/users/update_password.php';  
 include_once 'routes/timetable/detailedtimetable.php';  
+include_once 'routes/timetable/detailedtimetablebytid.php';  
 
 require_once 'routes/utils/utils.php';
 
@@ -141,6 +142,9 @@ switch ($endpoint) {
     break;
     case 'detailedtimetable':
         handle_detaileddetailedtimetable_requests($request_method, $db);
+    break;
+    case 'detailedtimetablebytid':
+        handle_detailedtimetablebytid_requests($request_method, $db);
     break;
 
     default:
