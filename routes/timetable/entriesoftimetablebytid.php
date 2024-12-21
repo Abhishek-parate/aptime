@@ -1,11 +1,11 @@
 <?php
 
-function handle_detailedtimetablebytid_requests($request_method, $db) {
+function handle_alldatadtimetablebytid_requests($request_method, $db) {
     header("Content-Type: application/json"); // Set content type
     switch ($request_method) {
 
         case 'POST':
-            create_detailedtimetable_record($db);
+            create_entriesoftimetablebytid_record($db);
             break;
 
         default:
@@ -17,7 +17,7 @@ function handle_detailedtimetablebytid_requests($request_method, $db) {
 
 
 
-function create_detailedtimetable_record($db) {
+function create_entriesoftimetablebytid_record($db) {
     // Get input from the request body
     $input = json_decode(file_get_contents('php://input'), true);
 

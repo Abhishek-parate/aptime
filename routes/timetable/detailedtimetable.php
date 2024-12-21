@@ -5,7 +5,7 @@ function handle_detaileddetailedtimetable_requests($request_method, $db) {
     switch ($request_method) {
 
         case 'POST':
-            create_detailedtimetable_record($db);
+            create_detailedtimetablebytid_record($db);
             break;
 
         default:
@@ -15,19 +15,9 @@ function handle_detaileddetailedtimetable_requests($request_method, $db) {
 }
 
 
-function handle_detailedtimetable_requests($request_method, $db) {
-    header("Content-Type: application/json"); // Set content type
-    switch ($request_method) {
-        case 'POST':
-            create_detailedtimetable_record($db);
-            break;
-        default:
-            sendMethodNotAllowedResponse();
-            break;
-    }
-}
 
-function create_detailedtimetable_record($db) {
+
+function create_detailedtimetablebytid_record($db) {
     // Get input from the request body
     $input = json_decode(file_get_contents('php://input'), true);
 
@@ -104,6 +94,9 @@ function create_detailedtimetable_record($db) {
         }
     }
 }
+
+
+
 
 
 
