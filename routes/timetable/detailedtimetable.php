@@ -36,17 +36,11 @@ function create_detailedtimetablebytid_record($db) {
         $day = htmlspecialchars(trim($record['day'] ?? ''));
         $start_time = htmlspecialchars(trim($record['start_time'] ?? ''));
         $end_time = htmlspecialchars(trim($record['end_time'] ?? ''));
-        $options = htmlspecialchars(trim($record['options'] ?? ''));
-        $status = htmlspecialchars(trim($record['status'] ?? ''));
+        $elective = htmlspecialchars(trim($record['elective'] ?? ''));
 
         // Validate fields
-        if ($tid === '' || $cid === '' || $fid === '' || $rid === '' || $day === '' || $start_time === '' || $end_time === '' || $status === '') {
+        if ($tid === '' || $cid === '' || $fid === '' || $rid === '' || $day === '' || $start_time === '' || $end_time === '') {
             sendBadRequestResponse('All fields are required');
-            return;
-        }
-
-        if (!is_numeric($status)) {
-            sendBadRequestResponse('Status should be numeric');
             return;
         }
 
@@ -54,7 +48,7 @@ function create_detailedtimetablebytid_record($db) {
         $query = "SELECT COUNT(*) FROM timetable_entries 
                   WHERE tid = :tid AND cid = :cid AND fid = :fid AND rid = :rid 
                   AND day = :day AND start_time = :start_time AND end_time = :end_time 
-                  AND options = :options AND status = :status";
+                  AND elective = :elective";
         $stmt = $db->prepare($query);
         $stmt->bindValue(':tid', $tid);
         $stmt->bindValue(':cid', $cid);
@@ -63,8 +57,7 @@ function create_detailedtimetablebytid_record($db) {
         $stmt->bindValue(':day', $day);
         $stmt->bindValue(':start_time', $start_time);
         $stmt->bindValue(':end_time', $end_time);
-        $stmt->bindValue(':options', $options);
-        $stmt->bindValue(':status', $status);
+        $stmt->bindValue(':elective', $elective);
         $stmt->execute();
         $exists = $stmt->fetchColumn();
 
@@ -74,8 +67,8 @@ function create_detailedtimetablebytid_record($db) {
         }
 
         // Insert timetable data
-        $query = "INSERT INTO timetable_entries (tid, cid, fid, rid, day, start_time, end_time, options, status) 
-                  VALUES (:tid, :cid, :fid, :rid, :day, :start_time, :end_time, :options, :status)";
+        $query = "INSERT INTO timetable_entries (tid, cid, fid, rid, day, start_time, end_time, elective) 
+                  VALUES (:tid, :cid, :fid, :rid, :day, :start_time, :end_time, :elective)";
         $stmt = $db->prepare($query);
         $stmt->bindValue(':tid', $tid);
         $stmt->bindValue(':cid', $cid);
@@ -84,8 +77,7 @@ function create_detailedtimetablebytid_record($db) {
         $stmt->bindValue(':day', $day);
         $stmt->bindValue(':start_time', $start_time);
         $stmt->bindValue(':end_time', $end_time);
-        $stmt->bindValue(':options', $options);
-        $stmt->bindValue(':status', $status);
+        $stmt->bindValue(':elective', $elective);
 
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Timetable entry created successfully']);
