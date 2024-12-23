@@ -47,8 +47,7 @@ function create_detailedtimetablebytid_record($db) {
         // Check if the timetable entry already exists
         $query = "SELECT COUNT(*) FROM timetable_entries 
                   WHERE tid = :tid AND cid = :cid AND fid = :fid AND rid = :rid 
-                  AND day = :day AND start_time = :start_time AND end_time = :end_time 
-                  AND elective = :elective";
+                  AND day = :day AND start_time = :start_time AND end_time = :end_time ";
         $stmt = $db->prepare($query);
         $stmt->bindValue(':tid', $tid);
         $stmt->bindValue(':cid', $cid);
@@ -57,7 +56,6 @@ function create_detailedtimetablebytid_record($db) {
         $stmt->bindValue(':day', $day);
         $stmt->bindValue(':start_time', $start_time);
         $stmt->bindValue(':end_time', $end_time);
-        $stmt->bindValue(':elective', $elective);
         $stmt->execute();
         $exists = $stmt->fetchColumn();
 
