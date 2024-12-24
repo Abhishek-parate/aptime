@@ -67,11 +67,11 @@ function get_detailedtimetable_record($db) {
                 if (!isset($groupedData[$elective])) {
                     $groupedData[$elective] = [
                         'elective' => $elective,
-                        'entries'  => []
+                        'courses'  => []
                     ];
                 }
 
-                $groupedData[$elective]['entries'][] = [
+                $groupedData[$elective]['courses'][] = [
                     'cid' => $row['cid'],
                     'fid' => $row['fid'],
                     'rid' => $row['rid'],
