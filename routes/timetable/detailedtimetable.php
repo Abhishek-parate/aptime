@@ -29,6 +29,7 @@ function create_detailedtimetablebytid_record($db) {
 
     foreach ($input['timetableData'] as $record) {
         // Extract and sanitize fields
+        $teid = htmlspecialchars(trim($record['teid'] ?? ''));
         $tid = htmlspecialchars(trim($record['tid'] ?? ''));
         $cid = htmlspecialchars(trim($record['cid'] ?? ''));
         $fid = htmlspecialchars(trim($record['fid'] ?? ''));
@@ -44,43 +45,65 @@ function create_detailedtimetablebytid_record($db) {
             return;
         }
 
-        // Check if the timetable entry already exists
-        $query = "SELECT COUNT(*) FROM timetable_entries 
-                  WHERE tid = :tid AND cid = :cid AND fid = :fid AND rid = :rid 
-                  AND day = :day AND start_time = :start_time AND end_time = :end_time ";
-        $stmt = $db->prepare($query);
-        $stmt->bindValue(':tid', $tid);
-        $stmt->bindValue(':cid', $cid);
-        $stmt->bindValue(':fid', $fid);
-        $stmt->bindValue(':rid', $rid);
-        $stmt->bindValue(':day', $day);
-        $stmt->bindValue(':start_time', $start_time);
-        $stmt->bindValue(':end_time', $end_time);
-        $stmt->execute();
-        $exists = $stmt->fetchColumn();
+          // Check if the timetable entry already exists (for update)
+          if (!empty($teid)) {
+            $query = "SELECT COUNT(*) FROM timetable_entries WHERE teid = :teid";
+            $stmt = $db->prepare($query);
+            $stmt->bindValue(':teid', $teid);
+            $stmt->execute();
+            $exists = $stmt->fetchColumn();
 
-        if ($exists > 0) {
-            sendBadRequestResponse('Timetable entry already exists');
-            return;
-        }
+            if ($exists > 0) {
+                // Update the existing timetable entry
+                $updateQuery = "UPDATE timetable_entries SET 
+                                tid = :tid, 
+                                cid = :cid, 
+                                fid = :fid, 
+                                rid = :rid, 
+                                day = :day, 
+                                start_time = :start_time, 
+                                end_time = :end_time, 
+                                elective = :elective 
+                                WHERE teid = :teid";
 
-        // Insert timetable data
-        $query = "INSERT INTO timetable_entries (tid, cid, fid, rid, day, start_time, end_time, elective) 
-                  VALUES (:tid, :cid, :fid, :rid, :day, :start_time, :end_time, :elective)";
-        $stmt = $db->prepare($query);
-        $stmt->bindValue(':tid', $tid);
-        $stmt->bindValue(':cid', $cid);
-        $stmt->bindValue(':fid', $fid);
-        $stmt->bindValue(':rid', $rid);
-        $stmt->bindValue(':day', $day);
-        $stmt->bindValue(':start_time', $start_time);
-        $stmt->bindValue(':end_time', $end_time);
-        $stmt->bindValue(':elective', $elective);
+                $stmt = $db->prepare($updateQuery);
+                $stmt->bindValue(':teid', $teid);
+                $stmt->bindValue(':tid', $tid);
+                $stmt->bindValue(':cid', $cid);
+                $stmt->bindValue(':fid', $fid);
+                $stmt->bindValue(':rid', $rid);
+                $stmt->bindValue(':day', $day);
+                $stmt->bindValue(':start_time', $start_time);
+                $stmt->bindValue(':end_time', $end_time);
+                $stmt->bindValue(':elective', $elective);
 
-        if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'Timetable entry created successfully']);
+                if ($stmt->execute()) {
+                    echo json_encode(['success' => true, 'message' => 'Timetable entry updated successfully']);
+                } else {
+                    sendDatabaseErrorResponse('Failed to update timetable entry');
+                }
+            } else {
+                sendBadRequestResponse('Timetable entry with provided teid does not exist');
+            }
         } else {
-            sendDatabaseErrorResponse('Failed to create timetable entry');
+            // Insert new timetable data
+            $insertQuery = "INSERT INTO timetable_entries (tid, cid, fid, rid, day, start_time, end_time, elective) 
+                            VALUES (:tid, :cid, :fid, :rid, :day, :start_time, :end_time, :elective)";
+            $stmt = $db->prepare($insertQuery);
+            $stmt->bindValue(':tid', $tid);
+            $stmt->bindValue(':cid', $cid);
+            $stmt->bindValue(':fid', $fid);
+            $stmt->bindValue(':rid', $rid);
+            $stmt->bindValue(':day', $day);
+            $stmt->bindValue(':start_time', $start_time);
+            $stmt->bindValue(':end_time', $end_time);
+            $stmt->bindValue(':elective', $elective);
+
+            if ($stmt->execute()) {
+                echo json_encode(['success' => true, 'message' => 'Timetable entry created successfully']);
+            } else {
+                sendDatabaseErrorResponse('Failed to create timetable entry');
+            }
         }
     }
 }
