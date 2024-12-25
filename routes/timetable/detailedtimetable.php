@@ -3,19 +3,14 @@
 function handle_detaileddetailedtimetable_requests($request_method, $db) {
     header("Content-Type: application/json"); // Set content type
     switch ($request_method) {
-
         case 'POST':
             create_detailedtimetablebytid_record($db);
             break;
-
         default:
             sendMethodNotAllowedResponse();
             break;
     }
 }
-
-
-
 
 function create_detailedtimetablebytid_record($db) {
     // Get input from the request body
@@ -27,6 +22,10 @@ function create_detailedtimetablebytid_record($db) {
         return;
     }
 
+    $allSuccess = true;
+    $errorMessage = '';
+
+    // Loop over the timetable data
     foreach ($input['timetableData'] as $record) {
         // Extract and sanitize fields
         $teid = htmlspecialchars(trim($record['teid'] ?? ''));
@@ -41,12 +40,13 @@ function create_detailedtimetablebytid_record($db) {
 
         // Validate fields
         if ($tid === '' || $cid === '' || $fid === '' || $rid === '' || $day === '' || $start_time === '' || $end_time === '') {
-            sendBadRequestResponse('All fields are required');
-            return;
+            $allSuccess = false;
+            $errorMessage = 'All fields are required';
+            break;
         }
 
-          // Check if the timetable entry already exists (for update)
-          if (!empty($teid)) {
+        // Check if the timetable entry already exists (for update)
+        if (!empty($teid)) {
             $query = "SELECT COUNT(*) FROM timetable_entries WHERE teid = :teid";
             $stmt = $db->prepare($query);
             $stmt->bindValue(':teid', $teid);
@@ -77,13 +77,15 @@ function create_detailedtimetablebytid_record($db) {
                 $stmt->bindValue(':end_time', $end_time);
                 $stmt->bindValue(':elective', $elective);
 
-                if ($stmt->execute()) {
-                    echo json_encode(['success' => true, 'message' => 'Timetable entry updated successfully']);
-                } else {
-                    sendDatabaseErrorResponse('Failed to update timetable entry');
+                if (!$stmt->execute()) {
+                    $allSuccess = false;
+                    $errorMessage = 'Failed to update timetable entry';
+                    break;
                 }
             } else {
-                sendBadRequestResponse('Timetable entry with provided teid does not exist');
+                $allSuccess = false;
+                $errorMessage = 'Timetable entry with provided teid does not exist';
+                break;
             }
         } else {
             // Insert new timetable data
@@ -99,19 +101,21 @@ function create_detailedtimetablebytid_record($db) {
             $stmt->bindValue(':end_time', $end_time);
             $stmt->bindValue(':elective', $elective);
 
-            if ($stmt->execute()) {
-                echo json_encode(['success' => true, 'message' => 'Timetable entry created successfully']);
-            } else {
-                sendDatabaseErrorResponse('Failed to create timetable entry');
+            if (!$stmt->execute()) {
+                $allSuccess = false;
+                $errorMessage = 'Failed to create timetable entry';
+                break;
             }
         }
     }
+
+    // Send a single response based on the outcome
+    if ($allSuccess) {
+        echo json_encode(['success' => true, 'message' => 'Timetable entries processed successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => $errorMessage]);
+    }
 }
-
-
-
-
-
 
 
 ?>
