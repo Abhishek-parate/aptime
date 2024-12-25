@@ -41,7 +41,6 @@ function get_detailedtimetable_record($db) {
                     'teid' => $row['teid'],
 
                     'cid' => $row['cid'],
-                    'teid' => $row['teid'],
                     'fid' => $row['fid'],
                     'rid' => $row['rid'],
                     'day' => $row['day'],
@@ -57,6 +56,7 @@ function get_detailedtimetable_record($db) {
                     ];
                 }
                 $groupedData[$elective]['courses'][] = [
+                    'teid' => $row['teid'],
                     'cid' => $row['cid'],
                     'fid' => $row['fid'],
                     'rid' => $row['rid'],
