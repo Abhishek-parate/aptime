@@ -54,6 +54,8 @@ function get_detailedtimetable_record($db) {
             // Check if the elective is 0, and add to a separate array
             if ($elective == '0') {
                 $separateElectiveZero[] = [
+                    'teid' => $row['teid'],
+
                     'cid' => $row['cid'],
                     'fid' => $row['fid'],
                     'rid' => $row['rid'],
@@ -72,6 +74,8 @@ function get_detailedtimetable_record($db) {
                 }
 
                 $groupedData[$elective]['courses'][] = [
+                    'teid' => $row['teid'],
+
                     'cid' => $row['cid'],
                     'fid' => $row['fid'],
                     'rid' => $row['rid'],
