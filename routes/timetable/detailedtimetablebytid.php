@@ -21,7 +21,6 @@ function get_detailedtimetable_record($db) {
         sendBadRequestResponse('Time ID (tid) is required');
         return;
     }
-
     $query = "SELECT teid, tid, cid, fid, rid, day, start_time, end_time, elective
               FROM timetable_entries
               WHERE tid = :tid";
