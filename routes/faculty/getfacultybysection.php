@@ -33,6 +33,7 @@ $query = "SELECT
     ca.sid,
     ca.fid, 
     f.name AS faculty_name, 
+    f.alias AS faculty_alias, 
     f.entrytime, 
     f.exittime, 
     f.max_allowed_lecture,
@@ -67,9 +68,6 @@ WHERE
         $stmt->bindValue(':sid', $sid, PDO::PARAM_INT);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (empty($result)) {
-            sendResponse(404, 'No record found for the provided ID');
-        }
         echo json_encode(['success' => true, 'data' => $result]);
     } catch (PDOException $e) {
         sendDatabaseErrorResponse($e->getMessage());

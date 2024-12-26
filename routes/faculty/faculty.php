@@ -40,11 +40,12 @@ function create_faculty_record($db) {
     
     $input = json_decode(file_get_contents('php://input'), true);
     $name = htmlspecialchars(trim($input['name'] ?? ''));
+    $alias = htmlspecialchars(trim($input['alias'] ?? ''));
     $entrytime = htmlspecialchars(trim($input['entrytime'] ?? ''));
     $exittime = htmlspecialchars(trim($input['exittime'] ?? ''));
     $max_allowed_lecture = htmlspecialchars(trim($input['max_allowed_lecture'] ?? ''));
 
-    if (empty($name) || empty($entrytime) || empty($exittime) || empty($max_allowed_lecture)) {
+    if (empty($name) || empty($alias) || empty($entrytime) || empty($exittime) || empty($max_allowed_lecture)) {
         sendBadRequestResponse('All fields are required');
         return;
     }
@@ -66,9 +67,10 @@ function create_faculty_record($db) {
  }
 
   // Prepare SQL query to insert faculty data
-  $query = "INSERT INTO faculty (name, entrytime, exittime, max_allowed_lecture) VALUES (:name, :entrytime, :exittime, :max_allowed_lecture)";
+  $query = "INSERT INTO faculty (name, alias, entrytime, exittime, max_allowed_lecture) VALUES (:name, :alias,:entrytime, :exittime, :max_allowed_lecture)";
   $stmt = $db->prepare($query);
   $stmt->bindValue(':name', $name);
+  $stmt->bindValue(':alias', $alias);
   $stmt->bindValue(':entrytime', $entrytime);
   $stmt->bindValue(':exittime', $exittime);
   $stmt->bindValue(':max_allowed_lecture', $max_allowed_lecture);
@@ -87,12 +89,13 @@ function update_faculty_record($db) {
     
     $fid = $input['fid'] ?? null;
     $name = htmlspecialchars(trim($input['name'] ?? ''));
+    $alias = htmlspecialchars(trim($input['alias'] ?? ''));
     $entrytime = htmlspecialchars(trim($input['entrytime'] ?? ''));
     $exittime = htmlspecialchars(trim($input['exittime'] ?? ''));
     $max_allowed_lecture = htmlspecialchars(trim($input['max_allowed_lecture'] ?? ''));
 
     // Validate sanitized input
-    if (!$fid || empty($name) || empty($entrytime) || empty($exittime) || empty($max_allowed_lecture)) {
+    if (!$fid || empty($name) || empty($alias) || empty($entrytime) || empty($exittime) || empty($max_allowed_lecture)) {
         sendBadRequestResponse('Invalid input or fid');
     }
 
@@ -116,6 +119,9 @@ function update_faculty_record($db) {
  if ($faculty['name'] !== $name) {
      $changes = true;
  }
+ if ($faculty['alias'] !== $alias) {
+     $changes = true;
+ }
  if ($faculty['entrytime'] !== $entrytime) {
      $changes = true;
  }
@@ -137,10 +143,11 @@ function update_faculty_record($db) {
 
 
  // Prepare SQL query to update room data
- $query = "UPDATE faculty SET name = :name, entrytime = :entrytime, exittime = :exittime, max_allowed_lecture = :max_allowed_lecture WHERE fid = :fid";
+ $query = "UPDATE faculty SET name = :name, alias = :alias, entrytime = :entrytime, exittime = :exittime, max_allowed_lecture = :max_allowed_lecture WHERE fid = :fid";
  try {
      $stmt = $db->prepare($query);
      $stmt->bindValue(':name', $name);
+     $stmt->bindValue(':alias', $alias);
      $stmt->bindValue(':entrytime', $entrytime);
      $stmt->bindValue(':exittime', $exittime);
      $stmt->bindValue(':max_allowed_lecture', $max_allowed_lecture);

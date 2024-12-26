@@ -12,6 +12,7 @@ function handle_detaileddetailedtimetable_requests($request_method, $db) {
     }
 }
 
+
 function create_detailedtimetablebytid_record($db) {
     // Get input from the request body
     $input = json_decode(file_get_contents('php://input'), true);
@@ -38,10 +39,25 @@ function create_detailedtimetablebytid_record($db) {
         $end_time = htmlspecialchars(trim($record['end_time'] ?? ''));
         $elective = htmlspecialchars(trim($record['elective'] ?? ''));
 
-        // Validate fields
+        // Check for deletion condition
+        if (empty($cid) && empty($rid) && !empty($teid)) {
+            // Delete the timetable entry
+            $deleteQuery = "DELETE FROM timetable_entries WHERE teid = :teid";
+            $stmt = $db->prepare($deleteQuery);
+            $stmt->bindValue(':teid', $teid);
+
+            if (!$stmt->execute()) {
+                $allSuccess = false;
+                $errorMessage = 'Failed to delete timetable entry';
+                break;
+            }
+            continue; // Skip to the next record
+        }
+
+        // Validate fields for insert/update
         if ($tid === '' || $cid === '' || $fid === '' || $rid === '' || $day === '' || $start_time === '' || $end_time === '') {
             $allSuccess = false;
-            $errorMessage = 'All fields are required';
+            $errorMessage = 'All fields are required unless deleting';
             break;
         }
 
@@ -116,6 +132,4 @@ function create_detailedtimetablebytid_record($db) {
         echo json_encode(['success' => false, 'message' => $errorMessage]);
     }
 }
-
-
 ?>

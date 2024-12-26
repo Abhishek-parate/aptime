@@ -54,7 +54,7 @@ function create_course_record($db) {
 
 
     // Validate input
-    if (empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid) || empty($elective)) {
+    if (empty($name) || empty($alias) || empty($course_code) || empty($category) || empty($max_lecture) || empty($duration) || empty($did) || empty($pid) || empty($yid)) {
         sendBadRequestResponse('All fields are required');
     }
 
