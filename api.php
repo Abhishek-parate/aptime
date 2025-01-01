@@ -23,6 +23,7 @@ include_once 'routes/class/getclassrooms.php';
 include_once 'routes/course/courseduration.php';  
 include_once 'routes/course/coursecategory.php';  
 include_once 'routes/class/getfloor.php';  
+include_once 'routes/class/getroomdatabycell.php';  
 include_once 'routes/timetable/timetable.php';  
 include_once 'routes/timetable/timetable.php';  
 include_once 'routes/timetable/getcourseandfaculty.php';  
@@ -31,7 +32,7 @@ include_once 'routes/timetable/gettimetable.php';
 include_once 'routes/allotment.php';  
 include_once 'routes/year/year.php';  
 include_once 'routes/program/program.php';  
-
+include_once 'routes/timetable/gettid.php';  
 include_once 'routes/semester/semester.php';  
 include_once 'routes/semester/getelective.php';  
 include_once 'routes/users/login.php';  
@@ -145,6 +146,13 @@ switch ($endpoint) {
     break;
     case 'detailedtimetablebytid':
         handle_detailedtimetablebytid_requests($request_method, $db);
+    break;
+    case 'getroomdatabycell':
+        handle_getroomdatabycell_requests($request_method, $db);
+    break;
+
+    case 'getfortid':
+        handle_getTid_requests($request_method, $db);
     break;
 
     default:
