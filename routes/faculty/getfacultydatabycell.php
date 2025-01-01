@@ -23,7 +23,29 @@ function get_getfacultydatabycell_records($db) {
         return;
     }
 
-    $query = "SELECT DISTINCT * FROM timetable_entries WHERE day = :day AND start_time = :start_time AND end_time = :end_time AND fid = :fid";
+    $query = "
+        SELECT DISTINCT te.*, 
+               f.name as faculty_name, 
+               c.name as course_name, 
+               r.name as room_name, 
+               tc.*, 
+               d.name as dept_name, 
+               d.alias as dept_alias, 
+               p.name as program_name, 
+               p.alias as program_alias, 
+               yd.name as yeardata_name
+        FROM timetable_entries te
+        JOIN faculty f ON te.fid = f.fid
+        JOIN course c ON te.cid = c.cid
+        JOIN class_room r ON te.rid = r.rid
+        JOIN timetable_create tc ON te.tid = tc.tid
+        JOIN dept d ON c.did = d.did
+        JOIN program p ON d.did = p.did
+        JOIN yeardata yd ON p.pid = yd.pid
+        WHERE te.day = :day 
+          AND te.start_time = :start_time 
+          AND te.end_time = :end_time 
+          AND te.fid = :fid";
 
     try {
         $stmt = $db->prepare($query);
@@ -38,6 +60,8 @@ function get_getfacultydatabycell_records($db) {
         sendDatabaseErrorResponse($e->getMessage());
     }
 }
+
+
 
 
 ?>
