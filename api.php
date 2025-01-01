@@ -24,6 +24,7 @@ include_once 'routes/course/courseduration.php';
 include_once 'routes/course/coursecategory.php';  
 include_once 'routes/class/getfloor.php';  
 include_once 'routes/class/getroomdatabycell.php';  
+include_once 'routes/faculty/getfacultydatabycell.php';  
 include_once 'routes/timetable/timetable.php';  
 include_once 'routes/timetable/timetable.php';  
 include_once 'routes/timetable/getcourseandfaculty.php';  
@@ -149,6 +150,9 @@ switch ($endpoint) {
     break;
     case 'getroomdatabycell':
         handle_getroomdatabycell_requests($request_method, $db);
+    break;
+    case 'getfacultydatabycell':
+        handle_getfacultydatabycell_requests($request_method, $db);
     break;
 
     case 'getfortid':
